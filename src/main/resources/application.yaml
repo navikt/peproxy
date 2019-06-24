@@ -1,0 +1,32 @@
+info:
+  app:
+    version: @project.version@
+    name: @project.name@
+    encoding: @project.build.sourceEncoding@
+    java:
+      source: @java.version@
+      target: @java.version@
+
+management:
+  endpoints:
+    web:
+      base-path: /internal
+      exposure.include: '*'
+      path-mapping:
+        prometheus: metrics
+  endpoint:
+    health.show-details : always
+    security.enabled : false
+    metrics:
+      enabled: false
+    prometheus:
+      enabled: true
+  info:
+    git:
+      mode: simple
+
+spring:
+  main:
+    banner-mode: 'OFF'
+  application:
+    name: peproxy
