@@ -1,0 +1,4 @@
+no.nav.security.oidc.issuer.reststs:
+  discoveryurl: http://metadata
+  acceptedaudience: aud-localhost
+  cookiename: localhost-idtoken

@@ -4,8 +4,7 @@ info:
     name: @project.name@
     encoding: @project.build.sourceEncoding@
     java:
-      source: @java.version@
-      target: @java.version@
+      version: @java.version@
 
 management:
   endpoints:
@@ -29,4 +28,8 @@ spring:
   main:
     banner-mode: 'OFF'
   application:
-    name: peproxy
+    name: ${info.app.name}
+
+nav:
+  proxyHost: webproxy-nais.nav.no
+  proxyPort: 8088
