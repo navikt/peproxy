@@ -1,6 +1,0 @@
-no.nav.security.oidc.issuer.reststs:
-  discoveryurl: https://login.microsoftonline.com/NAVtestB2C.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=B2C_1A_idporten_ver1
-  acceptedaudience: aud1
-  cookiename: peproxyidtoken
-
-http.proxy: http://webproxy-nais.nav.no:8088
