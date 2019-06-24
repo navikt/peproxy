@@ -8,47 +8,38 @@ import java.time.Duration;
 import java.util.function.Supplier;
 
 import javax.annotation.PreDestroy;
-import org.apache.commons.lang3.StringUtils;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.units.MemoryUnit;
 import org.ehcache.expiry.ExpiryPolicy;
 import org.springframework.stereotype.Component;
 
-
-/**
- * Same key with different age will not hit the same cache
- */
 @Component
 public class ProxyCache {
 
     private final CacheManager cacheManager;
-    private final Cache<String, byte[]> cache;
+    private final Cache<String, ValueWrapper> cache;
 
     public ProxyCache() {
         cacheManager = newCacheManagerBuilder()
                 .withCache("proxyCache",
-                        newCacheConfigurationBuilder(String.class, byte[].class,
+                        newCacheConfigurationBuilder(String.class, ValueWrapper.class,
                                 newResourcePoolsBuilder().heap(50, MemoryUnit.MB))
-                                .withExpiry(new NameBasedExpiry())
+                                .withExpiry(new CustomExpiry())
                 ).build(true);
-        cache = cacheManager.getCache("proxyCache", String.class, byte[].class);
+        cache = cacheManager.getCache("proxyCache", String.class, ValueWrapper.class);
     }
-
 
     public void put(String key, Long maxAge, byte[] value) {
-        cache.put(createCacheKey(key, maxAge), value);
+        cache.put(key, new ValueWrapper(value, maxAge));
     }
 
-    public byte[] get(String key, Long maxAge) {
-        return cache.get(createCacheKey(key, maxAge));
-    }
-
-    /**
-     * key is 'age in seconds'-'keyname' to be used in {@link NameBasedExpiry}
-     */
-    private String createCacheKey(String key, Long maxAge) {
-        return String.format("%d-%s", maxAge, key);
+    public ValueWrapper get(String key, Long maxAgeSeconds) {
+        ValueWrapper valueWrapper = cache.get(key);
+        if (valueWrapper == null || valueWrapper.getAgeSeconds() > maxAgeSeconds) {
+            return null;
+        }
+        return valueWrapper;
     }
 
     @PreDestroy
@@ -56,21 +47,45 @@ public class ProxyCache {
         cacheManager.close();
     }
 
-    private static class NameBasedExpiry implements ExpiryPolicy<String, Object> {
+    public static class ValueWrapper {
+
+        private byte[] value;
+        private Long maxAgeSeconds;
+        private Long createTime;
+
+        ValueWrapper(byte[] value, Long maxAgeSeconds) {
+            this.value = value;
+            this.maxAgeSeconds = maxAgeSeconds;
+            this.createTime = System.currentTimeMillis();
+        }
+
+        public byte[] getValue() {
+            return value;
+        }
+
+        public Long getMaxAgeSeconds() {
+            return maxAgeSeconds;
+        }
+
+        public Long getAgeSeconds() {
+            return (System.currentTimeMillis() - createTime) / 1000;
+        }
+    }
+
+    private static class CustomExpiry implements ExpiryPolicy<String, ValueWrapper> {
 
         @Override
-        public Duration getExpiryForCreation(String key, Object value) {
-            String age = StringUtils.substringBefore(key, "-");
-            return Duration.ofSeconds(Long.parseLong(age));
+        public Duration getExpiryForCreation(String key, ValueWrapper value) {
+            return Duration.ofSeconds(value.getMaxAgeSeconds());
         }
 
         @Override
-        public Duration getExpiryForAccess(String key, Supplier<?> value) {
+        public Duration getExpiryForAccess(String key, Supplier<? extends ValueWrapper> value) {
             return null;
         }
 
         @Override
-        public Duration getExpiryForUpdate(String key, Supplier<?> oldValue, Object newValue) {
+        public Duration getExpiryForUpdate(String key, Supplier<? extends ValueWrapper> oldValue, ValueWrapper newValue) {
             return null;
         }
     }

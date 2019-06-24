@@ -17,10 +17,13 @@ import io.micrometer.core.annotation.Timed;
 import no.nav.peproxy.config.NavProperties;
 import no.nav.peproxy.support.JsonUtils;
 import no.nav.peproxy.support.ProxyCache;
+import no.nav.peproxy.support.ProxyCache.ValueWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,17 +53,23 @@ public class ProxyController {
     @Timed(value = "proxy_timer", percentiles = {.5, .9, .99})
     public ResponseEntity post(
             @RequestHeader(value = "target", required = false) String target,
-            @RequestHeader(value = "max-age", defaultValue = DEFAULT_EXPIRE_SECONDS) Long maxAge,
+            @RequestHeader(value = "max-age", defaultValue = DEFAULT_EXPIRE_SECONDS) Long maxAgeSeconds,
             @RequestBody(required = false) byte[] body,
-            HttpMethod httpMethod
+            HttpMethod httpMethod,
+            JwtAuthenticationToken jwtAuthenticationToken
     ) {
         if (isBlank(target)) {
             return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler target")));
         }
         try {
-            int status = 200;
-            byte[] result = proxyCache.get(target, maxAge);
-            if (result == null) {
+            String cacheKey = target + jwtAuthenticationToken.getToken().getSubject();
+            ValueWrapper valueWrapper = proxyCache.get(cacheKey, maxAgeSeconds);
+            int status;
+            byte[] result;
+            if (valueWrapper != null) {
+                result = valueWrapper.getValue();
+                status = 200;
+            } else {
                 HttpRequest request = HttpRequest.newBuilder()
                         .method(httpMethod.name(), body != null ? BodyPublishers.ofByteArray(body) : BodyPublishers.noBody())
                         .uri(new URI(target))
@@ -68,9 +77,13 @@ public class ProxyController {
                 HttpResponse<byte[]> response = client.send(request, BodyHandlers.ofByteArray());
                 result = response.body();
                 status = response.statusCode();
-                proxyCache.put(target, maxAge, result);
+                proxyCache.put(cacheKey, maxAgeSeconds, result);
             }
-            return ResponseEntity.status(status).body(result);
+            String age = valueWrapper == null ? "0" : "" + valueWrapper.getAgeSeconds();
+            return ResponseEntity
+                    .status(status)
+                    .header(HttpHeaders.AGE, age)
+                    .body(result);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(error(e));
         }
