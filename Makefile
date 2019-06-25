@@ -40,11 +40,13 @@ tag:
 	git tag -a $(VERSION) -m "auto-tag from Makefile"
 
 deploy-preprod: DEPLOY_ENV=preprod
+deploy-preprod: INGRESS=https:\/\/peproxy.nais.preprod.local
 deploy-preprod: deploy-apps
 deploy-prod: DEPLOY_ENV=prod
+deploy-prod: INGRESS=https:\/\/peproxy.nais.adeo.no
 deploy-prod: deploy-apps
 
 deploy-apps:
 	kubectl config use-context $(DEPLOY_ENV)-fss
-	sed 's/{{version}}/$(VERSION)/' nais.yaml | sed 's/{{env}}/$(DEPLOY_ENV)/' | kubectl apply -f -
+	sed 's/{{version}}/$(VERSION)/' nais.yaml | sed 's/{{env}}/$(DEPLOY_ENV)/' | sed 's/{{ingress}}/$(INGRESS)/' | kubectl apply -f -
 	kubectl rollout status -w deployment/peproxy

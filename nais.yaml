@@ -9,6 +9,8 @@ spec:
   image: repo.adeo.no:5443/peproxy:{{version}}
   port: 8080
   team: teampeon
+  ingresses:
+    - {{ingress}}
   liveness:
     path: internal/isAlive
     initialDelay: 30
