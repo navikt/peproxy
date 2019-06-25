@@ -2,6 +2,7 @@ package no.nav.peproxy.support;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.nav.peproxy.support.dto.Error;
 
 public final class JsonUtils {
 

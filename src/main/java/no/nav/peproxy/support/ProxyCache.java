@@ -9,6 +9,8 @@ import java.util.function.Supplier;
 
 import io.prometheus.client.Counter;
 import javax.annotation.PreDestroy;
+import no.nav.peproxy.support.dto.CacheValueWrapper;
+import no.nav.peproxy.support.dto.HttpResponse;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.units.MemoryUnit;
@@ -28,6 +30,9 @@ public class ProxyCache {
             .register();
 
     public ProxyCache() {
+        cacheCounter.labels("hit");
+        cacheCounter.labels("miss");
+        cacheCounter.labels("expired");
         cacheManager = newCacheManagerBuilder()
                 .withCache("proxyCache",
                         newCacheConfigurationBuilder(String.class, CacheValueWrapper.class,
@@ -37,7 +42,7 @@ public class ProxyCache {
         cache = cacheManager.getCache("proxyCache", String.class, CacheValueWrapper.class);
     }
 
-    public void put(String key, Long maxAge, Value value) {
+    public void put(String key, Long maxAge, HttpResponse value) {
         cache.put(key, new CacheValueWrapper(value, maxAge));
     }
 

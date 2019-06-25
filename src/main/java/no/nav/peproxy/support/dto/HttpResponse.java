@@ -1,12 +1,12 @@
-package no.nav.peproxy.support;
+package no.nav.peproxy.support.dto;
 
-public class Value {
+public class HttpResponse {
 
     private byte[] data;
     private String contentType;
     private int status;
 
-    public Value(byte[] data, String contentType, int status) {
+    public HttpResponse(byte[] data, String contentType, int status) {
         this.data = data;
         this.contentType = contentType;
         this.status = status;

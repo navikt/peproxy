@@ -36,5 +36,6 @@ spring:
           jwk-set-uri: http://security-token-service/rest/v1/sts/jwks
 
 nav:
+  enableSecurity: true
   proxyHost: webproxy-nais.nav.no
   proxyPort: 8088

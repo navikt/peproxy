@@ -7,8 +7,17 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("nav")
 public class NavProperties {
 
+    private Boolean enableSecurity;
     private String proxyHost;
     private Integer proxyPort;
+
+    public Boolean getEnableSecurity() {
+        return enableSecurity;
+    }
+
+    public void setEnableSecurity(Boolean enableSecurity) {
+        this.enableSecurity = enableSecurity;
+    }
 
     public String getProxyHost() {
         return proxyHost;

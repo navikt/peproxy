@@ -1,19 +1,19 @@
-package no.nav.peproxy.support;
+package no.nav.peproxy.support.dto;
 
 public class CacheValueWrapper {
 
-    private Value value;
+    private HttpResponse httpResponse;
     private Long maxAgeSeconds;
     private Long createTime;
 
-    CacheValueWrapper(Value value, Long maxAgeSeconds) {
-        this.value = value;
+    public CacheValueWrapper(HttpResponse httpResponse, Long maxAgeSeconds) {
+        this.httpResponse = httpResponse;
         this.maxAgeSeconds = maxAgeSeconds;
         this.createTime = System.currentTimeMillis();
     }
 
-    public Value getValue() {
-        return value;
+    public HttpResponse getHttpResponse() {
+        return httpResponse;
     }
 
     public Long getMaxAgeSeconds() {

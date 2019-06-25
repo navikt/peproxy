@@ -1,4 +1,4 @@
-package no.nav.peproxy.support;
+package no.nav.peproxy.support.dto;
 
 public class Error {
 
