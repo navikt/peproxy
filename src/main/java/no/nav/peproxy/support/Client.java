@@ -14,7 +14,6 @@ import java.time.temporal.ChronoUnit;
 import no.nav.peproxy.config.NavProperties;
 import no.nav.peproxy.support.dto.HttpResponse;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -31,9 +30,9 @@ public class Client {
                 .build();
     }
 
-    public HttpResponse invoke(String target, byte[] body, HttpMethod httpMethod) throws URISyntaxException, java.io.IOException, InterruptedException {
+    public HttpResponse invoke(String method, String target, byte[] body) throws URISyntaxException, java.io.IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                .method(httpMethod.name(), body != null ? BodyPublishers.ofByteArray(body) : BodyPublishers.noBody())
+                .method(method, body != null ? BodyPublishers.ofByteArray(body) : BodyPublishers.noBody())
                 .uri(new URI(target))
                 .build();
         java.net.http.HttpResponse<byte[]> response = httpClient.send(request, BodyHandlers.ofByteArray());

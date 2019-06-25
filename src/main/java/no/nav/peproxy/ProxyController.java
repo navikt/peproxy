@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,11 +63,15 @@ public class ProxyController {
             if (fromCache) {
                 httpResponse = wrapper.getHttpResponse();
             } else {
-                httpResponse = client.invoke(target, body, httpMethod);
-                proxyCache.put(cacheKey, maxAgeSeconds, httpResponse);
+                httpResponse = client.invoke(httpMethod.name(), target, body);
+                // Lets not cache errors
+                if (HttpStatus.valueOf(httpResponse.getStatus()).is2xxSuccessful()) {
+                    proxyCache.put(cacheKey, maxAgeSeconds, httpResponse);
+                }
             }
             String age = fromCache ? "" + wrapper.getAgeSeconds() : "0";
-            logger.info("{} {} {} - age: {} maxAge: {} fromCache: {}", clientId, httpMethod, target, age, maxAgeSeconds, fromCache);
+            logger.info("{} {} {} - status={} age={} maxAge={} fromCache={}", clientId, httpMethod, target,
+                    httpResponse.getStatus(), age, maxAgeSeconds, fromCache);
             return ResponseEntity
                     .status(httpResponse.getStatus())
                     .header(HttpHeaders.AGE, age)
