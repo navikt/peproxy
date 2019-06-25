@@ -23,6 +23,7 @@
     <oidc-spring-support.version>0.2.18</oidc-spring-support.version>
     <logstash-logback-encoder.version>6.0</logstash-logback-encoder.version>
     <prometheus.version>0.6.0</prometheus.version>
+    <spring-cloud-dependencies.version>Greenwich.SR2</spring-cloud-dependencies.version>
   </properties>
 
   <dependencies>
@@ -82,8 +83,25 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud-dependencies.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <scm>
     <url>https://github.com/navikt/peproxy</url>
