@@ -55,7 +55,7 @@ public class ProxyController {
             String clientId = Optional.ofNullable(jwtAuthenticationToken)
                     .map(jwt -> jwt.getToken().getSubject())
                     .orElse(servletRequest.getRemoteAddr());
-            String cacheKey = target + clientId;
+            String cacheKey = clientId + httpMethod.name() + target;
             CacheValueWrapper wrapper = proxyCache.get(cacheKey, maxAgeSeconds);
             boolean fromCache = wrapper != null;
             HttpResponse httpResponse;
