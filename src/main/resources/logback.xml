@@ -13,10 +13,9 @@
     </encoder>
   </appender>
 
-  <logger name="no.nav.security.oidc.configuration" level="DEBUG"/>
+  <logger name="org.springframework.security.oauth2" level="DEBUG" />
   <logger name="no.nav.peproxy" level="DEBUG"/>
-<!--  <logger name="org.springframework.security.oauth2" level="DEBUG" />-->
-  <logger name="org.springframework" level="DEBUG" />
+  <logger name="org.springframework" level="INFO" />
 
   <root level="INFO">
     <appender-ref ref="STDOUT_JSON"/>
