@@ -33,7 +33,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:8082/rest/v1/sts/jwks
+          jwk-set-uri: http://security-token-service/rest/v1/sts/jwks
 
 nav:
   proxyHost: webproxy-nais.nav.no
