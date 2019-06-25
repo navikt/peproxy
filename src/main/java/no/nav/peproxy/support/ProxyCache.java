@@ -7,6 +7,7 @@ import static org.ehcache.config.builders.ResourcePoolsBuilder.newResourcePoolsB
 import java.time.Duration;
 import java.util.function.Supplier;
 
+import io.prometheus.client.Counter;
 import javax.annotation.PreDestroy;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
@@ -18,27 +19,38 @@ import org.springframework.stereotype.Component;
 public class ProxyCache {
 
     private final CacheManager cacheManager;
-    private final Cache<String, ValueWrapper> cache;
+    private final Cache<String, CacheValueWrapper> cache;
+
+    private static final Counter cacheCounter = Counter.build()
+            .name("peproxy_cache_counter")
+            .help("Cache status")
+            .labelNames("hit")
+            .register();
 
     public ProxyCache() {
         cacheManager = newCacheManagerBuilder()
                 .withCache("proxyCache",
-                        newCacheConfigurationBuilder(String.class, ValueWrapper.class,
+                        newCacheConfigurationBuilder(String.class, CacheValueWrapper.class,
                                 newResourcePoolsBuilder().heap(50, MemoryUnit.MB))
                                 .withExpiry(new CustomExpiry())
                 ).build(true);
-        cache = cacheManager.getCache("proxyCache", String.class, ValueWrapper.class);
+        cache = cacheManager.getCache("proxyCache", String.class, CacheValueWrapper.class);
     }
 
-    public void put(String key, Long maxAge, byte[] value) {
-        cache.put(key, new ValueWrapper(value, maxAge));
+    public void put(String key, Long maxAge, Value value) {
+        cache.put(key, new CacheValueWrapper(value, maxAge));
     }
 
-    public ValueWrapper get(String key, Long maxAgeSeconds) {
-        ValueWrapper valueWrapper = cache.get(key);
-        if (valueWrapper == null || valueWrapper.getAgeSeconds() > maxAgeSeconds) {
+    public CacheValueWrapper get(String key, Long maxAgeSeconds) {
+        CacheValueWrapper valueWrapper = cache.get(key);
+        if (valueWrapper == null) {
+            cacheCounter.labels("miss").inc();
+            return null;
+        } else if (valueWrapper.getAgeSeconds() > maxAgeSeconds) {
+            cacheCounter.labels("expired").inc();
             return null;
         }
+        cacheCounter.labels("hit").inc();
         return valueWrapper;
     }
 
@@ -47,45 +59,20 @@ public class ProxyCache {
         cacheManager.close();
     }
 
-    public static class ValueWrapper {
-
-        private byte[] value;
-        private Long maxAgeSeconds;
-        private Long createTime;
-
-        ValueWrapper(byte[] value, Long maxAgeSeconds) {
-            this.value = value;
-            this.maxAgeSeconds = maxAgeSeconds;
-            this.createTime = System.currentTimeMillis();
-        }
-
-        public byte[] getValue() {
-            return value;
-        }
-
-        public Long getMaxAgeSeconds() {
-            return maxAgeSeconds;
-        }
-
-        public Long getAgeSeconds() {
-            return (System.currentTimeMillis() - createTime) / 1000;
-        }
-    }
-
-    private static class CustomExpiry implements ExpiryPolicy<String, ValueWrapper> {
+    private static class CustomExpiry implements ExpiryPolicy<String, CacheValueWrapper> {
 
         @Override
-        public Duration getExpiryForCreation(String key, ValueWrapper value) {
+        public Duration getExpiryForCreation(String key, CacheValueWrapper value) {
             return Duration.ofSeconds(value.getMaxAgeSeconds());
         }
 
         @Override
-        public Duration getExpiryForAccess(String key, Supplier<? extends ValueWrapper> value) {
+        public Duration getExpiryForAccess(String key, Supplier<? extends CacheValueWrapper> value) {
             return null;
         }
 
         @Override
-        public Duration getExpiryForUpdate(String key, Supplier<? extends ValueWrapper> oldValue, ValueWrapper newValue) {
+        public Duration getExpiryForUpdate(String key, Supplier<? extends CacheValueWrapper> oldValue, CacheValueWrapper newValue) {
             return null;
         }
     }
