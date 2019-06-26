@@ -47,7 +47,7 @@ public class ProxyCache {
     }
 
     public CacheValueWrapper get(String key, Long maxAgeSeconds) {
-        CacheValueWrapper valueWrapper = cache.get(key);
+        var valueWrapper = cache.get(key);
         if (valueWrapper == null) {
             cacheCounter.labels("miss").inc();
             return null;

@@ -1,5 +1,7 @@
 package no.nav.peproxy.support.dto;
 
+import org.springframework.http.HttpStatus;
+
 public class HttpResponse {
 
     private byte[] data;
@@ -22,5 +24,9 @@ public class HttpResponse {
 
     public int getStatus() {
         return status;
+    }
+
+    public boolean is2xxSuccessful() {
+        return HttpStatus.valueOf(getStatus()).is2xxSuccessful();
     }
 }

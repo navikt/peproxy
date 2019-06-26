@@ -9,13 +9,11 @@ import javax.servlet.ServletRequest;
 import no.nav.peproxy.support.Client;
 import no.nav.peproxy.support.JsonUtils;
 import no.nav.peproxy.support.ProxyCache;
-import no.nav.peproxy.support.dto.CacheValueWrapper;
 import no.nav.peproxy.support.dto.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,23 +51,23 @@ public class ProxyController {
             return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler target")));
         }
         try {
-            String clientId = Optional.ofNullable(jwtAuthenticationToken)
+            var clientId = Optional.ofNullable(jwtAuthenticationToken)
                     .map(jwt -> jwt.getToken().getSubject())
                     .orElse(servletRequest.getRemoteAddr());
-            String cacheKey = clientId + httpMethod.name() + target;
-            CacheValueWrapper wrapper = proxyCache.get(cacheKey, maxAgeSeconds);
-            boolean fromCache = wrapper != null;
+            var cacheKey = clientId + httpMethod.name() + target;
+            var wrapper = proxyCache.get(cacheKey, maxAgeSeconds);
+            var fromCache = wrapper != null;
             HttpResponse httpResponse;
             if (fromCache) {
                 httpResponse = wrapper.getHttpResponse();
             } else {
                 httpResponse = client.invoke(httpMethod.name(), target, body);
                 // Lets not cache errors
-                if (HttpStatus.valueOf(httpResponse.getStatus()).is2xxSuccessful()) {
+                if (httpResponse.is2xxSuccessful()) {
                     proxyCache.put(cacheKey, maxAgeSeconds, httpResponse);
                 }
             }
-            String age = fromCache ? "" + wrapper.getAgeSeconds() : "0";
+            var age = fromCache ? "" + wrapper.getAgeSeconds() : "0";
             logger.info("{} {} {} - status={} age={} maxAge={} fromCache={}", clientId, httpMethod, target,
                     httpResponse.getStatus(), age, maxAgeSeconds, fromCache);
             return ResponseEntity

@@ -31,12 +31,12 @@ public class Client {
     }
 
     public HttpResponse invoke(String method, String target, byte[] body) throws URISyntaxException, java.io.IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
+        var request = HttpRequest.newBuilder()
                 .method(method, body != null ? BodyPublishers.ofByteArray(body) : BodyPublishers.noBody())
                 .uri(new URI(target))
                 .build();
-        java.net.http.HttpResponse<byte[]> response = httpClient.send(request, BodyHandlers.ofByteArray());
-        String contentType = response.headers().firstValue(HttpHeaders.CONTENT_TYPE).orElse(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        var response = httpClient.send(request, BodyHandlers.ofByteArray());
+        var contentType = response.headers().firstValue(HttpHeaders.CONTENT_TYPE).orElse(MediaType.APPLICATION_OCTET_STREAM_VALUE);
         return new HttpResponse(response.body(), contentType, response.statusCode());
     }
 }
