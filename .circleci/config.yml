@@ -1,0 +1,51 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:11-jdk
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
+      - run: mvn dependency:go-offline
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+      - run: mvn clean install
+      - run:
+          name: release
+          command: |
+            docker build . -t navikt/peproxy:${CIRCLE_SHA1}
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+            docker push navikt/peproxy:${CIRCLE_SHA1}
+      - run:
+          name: deploy to preprod
+          command: |
+            git clone https://github.com/navikt/github-apps-support.git
+            export PATH=`pwd`/github-apps-support/bin:$PATH
+            echo $GITHUB_APP_KEY | tr '_' '\n' > peonci.key
+            export GITHUB_APP_TOKEN=$(generate-installation-token.sh `generate-jwt.sh peonci.key 23087`)
+            rm peonci.key
+            curl -i \
+                -X POST \
+                -d '{
+                     "ref": "'"${CIRCLE_SHA1}"'",
+                     "description": "",
+                     "environment": "dev-fss",
+                     "required_contexts": [],
+                     "payload": {
+                       "version": [1, 0, 0],
+                       "team": "teampeon",
+                       "kubernetes": {
+                         "resources": ['"$(cat nais-dev.json | jq '.spec.image = "'navikt/peproxy:${CIRCLE_SHA1}'"')"']
+                       }
+                     }
+                   }' \
+                -H "Accept: application/vnd.github.ant-man-preview+json" \
+                -u "$GITHUB_APP":"$GITHUB_APP_TOKEN" \
+                https://api.github.com/repos/navikt/peproxy/deployments
+
