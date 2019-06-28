@@ -1,5 +1,6 @@
 spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://localhost:${wiremock.server.port}/sts/jwks
 
 nav:
+  enableSecurity: true
   proxyHost: localhost
   proxyPort: ${wiremock.server.port}
