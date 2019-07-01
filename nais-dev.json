@@ -48,7 +48,7 @@
     "env": [
       {
         "name": "SPRING_PROFILES_ACTIVE",
-        "value": "{{env}}"
+        "value": "nav"
       }
     ]
   }
