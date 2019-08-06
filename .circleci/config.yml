@@ -23,16 +23,13 @@ jobs:
             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
             docker push navikt/peproxy:${CIRCLE_SHA1}
       - run:
-          name: github creds
+          name: deploy to preprod
           command: |
             git clone https://github.com/navikt/github-apps-support.git
             export PATH=`pwd`/github-apps-support/bin:$PATH
             echo $GITHUB_APP_KEY | tr '_' '\n' > peonci.key
-            echo 'export GITHUB_APP_TOKEN=$(generate-installation-token.sh `generate-jwt.sh peonci.key 23087`)' >> $BASH_ENV
+            export GITHUB_APP_TOKEN=$(generate-installation-token.sh `generate-jwt.sh peonci.key 23087`)
             rm peonci.key
-      - run:
-          name: deploy to preprod
-          command: |
             curl -i \
                 -X POST \
                 -d '{
@@ -54,6 +51,11 @@ jobs:
       - run:
           name: deploy to prod
           command: |
+            git clone https://github.com/navikt/github-apps-support.git
+            export PATH=`pwd`/github-apps-support/bin:$PATH
+            echo $GITHUB_APP_KEY | tr '_' '\n' > peonci.key
+            export GITHUB_APP_TOKEN=$(generate-installation-token.sh `generate-jwt.sh peonci.key 23087`)
+            rm peonci.key
             curl -i \
                 -X POST \
                 -d '{
