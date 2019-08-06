@@ -48,4 +48,24 @@ jobs:
                 -H "Accept: application/vnd.github.ant-man-preview+json" \
                 -u "$GITHUB_APP":"$GITHUB_APP_TOKEN" \
                 https://api.github.com/repos/navikt/peproxy/deployments
-
+      - run:
+          name: deploy to prod
+          command: |
+            curl -i \
+                -X POST \
+                -d '{
+                     "ref": "'"${CIRCLE_SHA1}"'",
+                     "description": "",
+                     "environment": "prod-fss",
+                     "required_contexts": [],
+                     "payload": {
+                       "version": [1, 0, 0],
+                       "team": "teampeon",
+                       "kubernetes": {
+                         "resources": ['"$(cat nais-prod.json | jq '.spec.image = "'navikt/peproxy:${CIRCLE_SHA1}'"')"']
+                       }
+                     }
+                   }' \
+                -H "Accept: application/vnd.github.ant-man-preview+json" \
+                -u "$GITHUB_APP":"$GITHUB_APP_TOKEN" \
+                https://api.github.com/repos/navikt/peproxy/deployments
