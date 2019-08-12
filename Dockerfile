@@ -1,3 +1,2 @@
 FROM navikt/java:11
-
-COPY target/peproxy*.jar /app/app.jar
+COPY target/app.jar /app/app.jar

@@ -12,7 +12,7 @@ jobs:
           image: navikt/peproxy
 workflows:
   version: 2
-  build_and_release:
+  deploy-docker-and-nais:
     jobs:
       - build_and_release:
           context: NAIS deployment
