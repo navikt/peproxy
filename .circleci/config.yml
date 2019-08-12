@@ -13,6 +13,8 @@ jobs:
           paths:
             - target/app.jar
             - Dockerfile
+      - attach_workspace:
+          at: ~/project
       - nais/docker-deploy:
           image: navikt/peproxy
 workflows:
