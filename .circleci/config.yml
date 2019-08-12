@@ -8,6 +8,11 @@ jobs:
     steps:
       - checkout
       - run: mvn clean install
+      - persist_to_workspace:
+          root: .
+          paths:
+            - target/app.jar
+            - Dockerfile
       - nais/docker-deploy:
           image: navikt/peproxy
 workflows:
