@@ -8,13 +8,6 @@ jobs:
     steps:
       - checkout
       - run: mvn clean install
-      - persist_to_workspace:
-          root: .
-          paths:
-            - target/app.jar
-            - Dockerfile
-      - attach_workspace:
-          at: ~/project
       - nais/docker-deploy:
           image: navikt/peproxy
 workflows:
@@ -34,6 +27,7 @@ workflows:
           nais-template: nais.yaml
           environment: dev-fss
           team: teampeon
+          build-and-push-docker-image: false
           requires:
             - build_and_release
           filters:
