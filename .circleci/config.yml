@@ -2,27 +2,20 @@ version: 2.1
 orbs:
   nais: 'navikt/nais-deployment@1.4.1'
 jobs:
-  build:
+  build_and_release:
     docker:
       - image: 'circleci/openjdk:11-jdk'
     steps:
       - checkout
       - run: mvn clean install
-  release:
-    docker:
-      - image: 'circleci/openjdk:11-stretch'
-    steps:
       - nais/docker-deploy:
           image: navikt/peproxy
-workflow:
+workflows:
   version: 2
   build_and_release:
     jobs:
-      - build
-      - release:
+      - build_and_release:
           context: NAIS deployment
-          requires:
-            - build
           filters:
             branches:
               only:
@@ -35,7 +28,7 @@ workflow:
           environment: dev-fss
           team: teampeon
           requires:
-            - release
+            - build_and_release
           filters:
             branches:
               only:
