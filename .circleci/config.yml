@@ -21,11 +21,27 @@ workflows:
               only:
                 - master
       - nais/deploy:
+          name: Deploy dev
           repo: navikt/peproxy
           image: navikt/peproxy
           github-app-id: 23087
-          nais-template: nais.yaml
+          nais-template: nais-dev.yaml
           environment: dev-fss
+          team: teampeon
+          build-and-push-docker-image: false
+          requires:
+            - build_and_release
+          filters:
+            branches:
+              only:
+                - master
+      - nais/deploy:
+          name: Deploy prod
+          repo: navikt/peproxy
+          image: navikt/peproxy
+          github-app-id: 23087
+          nais-template: nais-prod.yaml
+          environment: prod-fss
           team: teampeon
           build-and-push-docker-image: false
           requires:
