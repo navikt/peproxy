@@ -4,6 +4,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.Optional;
 
+import com.sun.jdi.LongValue;
 import io.micrometer.core.annotation.Timed;
 import javax.servlet.ServletRequest;
 import no.nav.peproxy.support.Client;
@@ -27,7 +28,7 @@ public class ProxyController {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String DEFAULT_EXPIRE_SECONDS = "60";
+    private static final Long DEFAULT_EXPIRE_SECONDS = 60l;
 
     private final Client client;
     private final ProxyCache proxyCache;
@@ -40,16 +41,24 @@ public class ProxyController {
     @RequestMapping
     @Timed(value = "proxy_timer", percentiles = {.5, .9, .99})
     public ResponseEntity post(
-            @RequestHeader(value = "target", required = false) String target,
-            @RequestHeader(value = "max-age", defaultValue = DEFAULT_EXPIRE_SECONDS) Long maxAgeSeconds,
+            @RequestHeader HttpHeaders httpHeaders,
             @RequestBody(required = false) byte[] body,
             HttpMethod httpMethod,
             JwtAuthenticationToken jwtAuthenticationToken,
             ServletRequest servletRequest
     ) {
-        if (isBlank(target)) {
+
+
+        if (httpHeaders == null || httpHeaders.isEmpty() || httpHeaders.containsKey("target")) {
             return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler target")));
         }
+
+        String target = httpHeaders.get("target").get(0);
+        httpHeaders.remove("target");
+
+        Long maxAgeSeconds = httpHeaders.containsKey("max-age") ?  Long.parseLong(httpHeaders.get("max-age").get(0)) : DEFAULT_EXPIRE_SECONDS;
+        httpHeaders.remove("max-age");
+
         try {
             var clientId = Optional.ofNullable(jwtAuthenticationToken)
                     .map(jwt -> jwt.getToken().getSubject())
@@ -74,7 +83,7 @@ public class ProxyController {
                     .status(httpResponse.getStatus())
                     .header(HttpHeaders.AGE, age)
                     .header(HttpHeaders.CONTENT_TYPE, httpResponse.getContentType())
-                    .body(httpResponse.getData());
+                    .body(httpResponse.getBody());
         } catch (Exception e) {
             return ResponseEntity.status(500).body(error(e));
         }

@@ -4,18 +4,18 @@ import org.springframework.http.HttpStatus;
 
 public class HttpResponse {
 
-    private byte[] data;
+    private byte[] body;
     private String contentType;
     private int status;
 
     public HttpResponse(byte[] data, String contentType, int status) {
-        this.data = data;
+        this.body = data;
         this.contentType = contentType;
         this.status = status;
     }
 
-    public byte[] getData() {
-        return data;
+    public byte[] getBody() {
+        return body;
     }
 
     public String getContentType() {
