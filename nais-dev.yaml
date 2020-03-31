@@ -4,9 +4,9 @@ metadata:
   name: peproxy
   namespace: default
   labels:
-    team: {{team}}
+    team: pensjonsamhandling
 spec:
-  image: {{version}}
+  image: {{ image }}
   port: 8080
   ingresses:
     - https://peproxy.nais.preprod.local
