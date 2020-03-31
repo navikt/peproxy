@@ -15,4 +15,4 @@ curl https://peproxy.nais.preprod.local -H "target: <url>"
 
 ## For NAV-ansatte
 
-Interne henvendelser kan sendes via Slack i kanalen #samhandling.
+Interne henvendelser kan sendes via Slack i kanalen #samhandling_pensjonsområdet.
