@@ -13,6 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
+import no.nav.peproxy.config.ForbiddenHttpHeaders;
 import no.nav.peproxy.config.NavProperties;
 import no.nav.peproxy.support.dto.HttpResponse;
 import org.springframework.http.HttpHeaders;
@@ -47,7 +48,9 @@ public class Client {
 
     public void buildUpheadersInHttpbuilder(HttpHeaders httpHeaders, HttpRequest.Builder request) {
         for (Map.Entry<String, List<String>> entry : httpHeaders.entrySet()) {
-            request.setHeader(entry.getKey(), entry.getValue().get(0));
+            if (ForbiddenHttpHeaders.checkIfHttpHeaderIsViable(entry.getKey())) {
+                request.header(entry.getKey(), entry.getValue().get(0));
+            }
         }
     }
 }

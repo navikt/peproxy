@@ -1,12 +1,7 @@
 package no.nav.peproxy;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
-import java.util.Optional;
-
-import com.sun.jdi.LongValue;
 import io.micrometer.core.annotation.Timed;
-import javax.servlet.ServletRequest;
+import no.nav.peproxy.config.Constants;
 import no.nav.peproxy.support.Client;
 import no.nav.peproxy.support.JsonUtils;
 import no.nav.peproxy.support.ProxyCache;
@@ -21,6 +16,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.ServletRequest;
+import java.util.Optional;
+
+import static no.nav.peproxy.config.Constants.*;
+import static no.nav.peproxy.config.Constants.HTTPHEADERS_TARGET;
 
 @RestController
 @RequestMapping("/")
@@ -49,19 +50,17 @@ public class ProxyController {
     ) {
 
 
-        if (httpHeaders == null || httpHeaders.isEmpty() || httpHeaders.containsKey("target")) {
-            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler target")));
+        if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET)) {
+            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler "+HTTPHEADERS_TARGET)));
         }
 
-        String target = httpHeaders.get("target").get(0);
-        httpHeaders.remove("target");
+        String target = httpHeaders.get(HTTPHEADERS_TARGET).get(0);
+        httpHeaders.remove(HTTPHEADERS_TARGET);
 
-        Long maxAgeSeconds = httpHeaders.containsKey("max-age") ?  Long.parseLong(httpHeaders.get("max-age").get(0)) : DEFAULT_EXPIRE_SECONDS;
-        httpHeaders.remove("max-age");
-
+        Long maxAgeSeconds = httpHeaders.containsKey(HTTPHEADERS_MAX_AGE) ?  Long.parseLong(httpHeaders.get(HTTPHEADERS_MAX_AGE).get(0)) : DEFAULT_EXPIRE_SECONDS;
+        httpHeaders.remove(HTTPHEADERS_MAX_AGE);
 
         logger.info("headers: {}", httpHeaders);
-
 
         try {
             var clientId = Optional.ofNullable(jwtAuthenticationToken)
