@@ -1,0 +1,41 @@
+info:
+  app:
+    version: 1.0
+    name: peproxy
+    encoding: UTF-8
+    java:
+      version: 11.0.4
+
+management:
+  endpoints:
+    web:
+      base-path: /internal
+      exposure.include: '*'
+      path-mapping:
+        prometheus: metrics
+  endpoint:
+    health.show-details : always
+    security.enabled : false
+    metrics:
+      enabled: false
+    prometheus:
+      enabled: true
+  info:
+    git:
+      mode: simple
+
+spring:
+  main:
+    banner-mode: 'OFF'
+  application:
+    name: ${info.app.name}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://security-token-service/rest/v1/sts/jwks
+
+nav:
+  enableSecurity: false
+  proxyHost: webproxy-nais.nav.no
+  proxyPort: 8088
