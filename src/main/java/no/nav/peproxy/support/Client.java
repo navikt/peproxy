@@ -10,6 +10,8 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
 
 import no.nav.peproxy.config.NavProperties;
 import no.nav.peproxy.support.dto.HttpResponse;
@@ -30,13 +32,22 @@ public class Client {
                 .build();
     }
 
-    public HttpResponse invoke(String method, String target, byte[] body) throws URISyntaxException, java.io.IOException, InterruptedException {
-        var request = HttpRequest.newBuilder()
+    public HttpResponse invoke(String method, String target, byte[] body, HttpHeaders httpHeaders) throws URISyntaxException, java.io.IOException, InterruptedException {
+        var httpRequestBuilder = HttpRequest.newBuilder()
                 .method(method, body != null ? BodyPublishers.ofByteArray(body) : BodyPublishers.noBody())
-                .uri(new URI(target))
-                .build();
+                .uri(new URI(target));
+        buildUpheadersInHttpbuilder(httpHeaders, httpRequestBuilder);
+        var request = httpRequestBuilder.build();
+
         var response = httpClient.send(request, BodyHandlers.ofByteArray());
         var contentType = response.headers().firstValue(HttpHeaders.CONTENT_TYPE).orElse(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+
         return new HttpResponse(response.body(), contentType, response.statusCode());
+    }
+
+    public void buildUpheadersInHttpbuilder(HttpHeaders httpHeaders, HttpRequest.Builder request) {
+        for (Map.Entry<String, List<String>> entry : httpHeaders.entrySet()) {
+            request.setHeader(entry.getKey(), entry.getValue().get(0));
+        }
     }
 }

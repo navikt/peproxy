@@ -59,18 +59,23 @@ public class ProxyController {
         Long maxAgeSeconds = httpHeaders.containsKey("max-age") ?  Long.parseLong(httpHeaders.get("max-age").get(0)) : DEFAULT_EXPIRE_SECONDS;
         httpHeaders.remove("max-age");
 
+
+        logger.info("headers: {}", httpHeaders);
+
         try {
             var clientId = Optional.ofNullable(jwtAuthenticationToken)
                     .map(jwt -> jwt.getToken().getSubject())
                     .orElse(servletRequest.getRemoteAddr());
+
             var cacheKey = clientId + httpMethod.name() + target;
             var wrapper = proxyCache.get(cacheKey, maxAgeSeconds);
             var fromCache = wrapper != null;
             HttpResponse httpResponse;
+
             if (fromCache) {
                 httpResponse = wrapper.getHttpResponse();
             } else {
-                httpResponse = client.invoke(httpMethod.name(), target, body);
+                httpResponse = client.invoke(httpMethod.name(), target, body, httpHeaders);
                 // Lets not cache errors
                 if (httpResponse.is2xxSuccessful()) {
                     proxyCache.put(cacheKey, maxAgeSeconds, httpResponse);
