@@ -62,36 +62,38 @@ public class ProxyController {
 
         logger.info("headers: {}", httpHeaders);
 
-        try {
-            var clientId = Optional.ofNullable(jwtAuthenticationToken)
-                    .map(jwt -> jwt.getToken().getSubject())
-                    .orElse(servletRequest.getRemoteAddr());
-
-            var cacheKey = clientId + httpMethod.name() + target;
-            var wrapper = proxyCache.get(cacheKey, maxAgeSeconds);
-            var fromCache = wrapper != null;
-            HttpResponse httpResponse;
-
-            if (fromCache) {
-                httpResponse = wrapper.getHttpResponse();
-            } else {
-                httpResponse = client.invoke(httpMethod.name(), target, body, httpHeaders);
-                // Lets not cache errors
-                if (httpResponse.is2xxSuccessful()) {
-                    proxyCache.put(cacheKey, maxAgeSeconds, httpResponse);
-                }
-            }
-            var age = fromCache ? "" + wrapper.getAgeSeconds() : "0";
-            logger.info("{} {} {} - status={} age={} maxAge={} fromCache={}", clientId, httpMethod, target,
-                    httpResponse.getStatus(), age, maxAgeSeconds, fromCache);
-            return ResponseEntity
-                    .status(httpResponse.getStatus())
-                    .header(HttpHeaders.AGE, age)
-                    .header(HttpHeaders.CONTENT_TYPE, httpResponse.getContentType())
-                    .body(httpResponse.getBody());
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(error(e));
-        }
+        return null;
+//
+//        try {
+//            var clientId = Optional.ofNullable(jwtAuthenticationToken)
+//                    .map(jwt -> jwt.getToken().getSubject())
+//                    .orElse(servletRequest.getRemoteAddr());
+//
+//            var cacheKey = clientId + httpMethod.name() + target;
+//            var wrapper = proxyCache.get(cacheKey, maxAgeSeconds);
+//            var fromCache = wrapper != null;
+//            HttpResponse httpResponse;
+//
+//            if (fromCache) {
+//                httpResponse = wrapper.getHttpResponse();
+//            } else {
+//                httpResponse = client.invoke(httpMethod.name(), target, body, httpHeaders);
+//                // Lets not cache errors
+//                if (httpResponse.is2xxSuccessful()) {
+//                    proxyCache.put(cacheKey, maxAgeSeconds, httpResponse);
+//                }
+//            }
+//            var age = fromCache ? "" + wrapper.getAgeSeconds() : "0";
+//            logger.info("{} {} {} - status={} age={} maxAge={} fromCache={}", clientId, httpMethod, target,
+//                    httpResponse.getStatus(), age, maxAgeSeconds, fromCache);
+//            return ResponseEntity
+//                    .status(httpResponse.getStatus())
+//                    .header(HttpHeaders.AGE, age)
+//                    .header(HttpHeaders.CONTENT_TYPE, httpResponse.getContentType())
+//                    .body(httpResponse.getBody());
+//        } catch (Exception e) {
+//            return ResponseEntity.status(500).body(error(e));
+//        }
     }
 
     private String error(Exception e) {
