@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import static no.nav.peproxy.config.Constants.*;
-import static no.nav.peproxy.config.Constants.EXTERNAL_HTTPHEADERS_AUTHORIZATION;
+import static no.nav.peproxy.config.Constants.HTTPHEADERS_TARGET_AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Component
@@ -62,12 +62,12 @@ public class Client {
 
     private void removeHeadersNotForClient(HttpHeaders httpHeaders) {
         httpHeaders.remove(HTTPHEADERS_MAX_AGE);
-        httpHeaders.remove(HTTPHEADERS_TARGET);
+        httpHeaders.remove(HTTPHEADERS_TARGET_URL);
 
-        if (httpHeaders.containsKey(EXTERNAL_HTTPHEADERS_AUTHORIZATION)) {
-            httpHeaders.add(AUTHORIZATION, httpHeaders.get(EXTERNAL_HTTPHEADERS_AUTHORIZATION).get(0));
+        if (httpHeaders.containsKey(HTTPHEADERS_TARGET_AUTHORIZATION)) {
+            httpHeaders.add(AUTHORIZATION, httpHeaders.get(HTTPHEADERS_TARGET_AUTHORIZATION).get(0));
         }
 
-        httpHeaders.remove(EXTERNAL_HTTPHEADERS_AUTHORIZATION);
+        httpHeaders.remove(HTTPHEADERS_TARGET_AUTHORIZATION);
     }
 }

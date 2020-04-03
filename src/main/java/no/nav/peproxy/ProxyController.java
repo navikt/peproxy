@@ -20,7 +20,6 @@ import javax.servlet.ServletRequest;
 import java.util.Optional;
 
 import static no.nav.peproxy.config.Constants.*;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @RestController
 @RequestMapping("/")
@@ -40,16 +39,16 @@ public class ProxyController {
     @Timed(value = "proxy_timer", percentiles = {.5, .9, .99})
     public ResponseEntity post(
             @RequestHeader HttpHeaders httpHeaders,
-            @RequestHeader(value = "target", required = false) String target,
-            @RequestHeader(value = "max-age", defaultValue = DEFAULT_EXPIRE_SECONDS) Long maxAge,
+            @RequestHeader(value = HTTPHEADERS_TARGET_URL, required = false) String target,
+            @RequestHeader(value = HTTPHEADERS_MAX_AGE, defaultValue = DEFAULT_EXPIRE_SECONDS) Long maxAge,
             @RequestBody(required = false) byte[] body,
             HttpMethod httpMethod,
             JwtAuthenticationToken jwtAuthToken,
             ServletRequest servletRequest
     ) {
-        if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET)) {
+        if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET_URL)) {
             logger.error("Missing target in header, returns 400 code.");
-            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler " + HTTPHEADERS_TARGET)));
+            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler " + HTTPHEADERS_TARGET_URL)));
         }
 
         logger.info("Trying to call {} with httpMethod {} and headers {}.", target, httpMethod, httpMethod);

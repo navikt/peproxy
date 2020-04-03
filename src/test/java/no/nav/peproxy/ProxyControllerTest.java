@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static no.nav.peproxy.config.Constants.HTTPHEADERS_MAX_AGE;
-import static no.nav.peproxy.config.Constants.HTTPHEADERS_TARGET;
+import static no.nav.peproxy.config.Constants.HTTPHEADERS_TARGET_URL;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -102,7 +102,7 @@ public class ProxyControllerTest {
                 .send(HttpRequest.newBuilder()
                                 .GET()
                                 .header(AUTHORIZATION, "Bearer " + TestTokenUtil.VALID_TOKEN)
-                                .header(HTTPHEADERS_TARGET, wiremockBasePath + "/target")
+                                .header(HTTPHEADERS_TARGET_URL, wiremockBasePath + "/target")
                                 .header(HTTPHEADERS_MAX_AGE, "30")
                                 .uri(new URI(serverPath)).build(),
                         BodyHandlers.ofString());
