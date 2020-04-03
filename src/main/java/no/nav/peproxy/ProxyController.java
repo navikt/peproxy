@@ -51,6 +51,7 @@ public class ProxyController {
 
 
         if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET)) {
+            logger.info("Missing target in header, returns 400 code.");
             return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler "+HTTPHEADERS_TARGET)));
         }
 
