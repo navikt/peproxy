@@ -50,7 +50,7 @@ public class ProxyController {
     ) {
 
         if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET)) {
-            logger.info("Missing target in header, returns 400 code.");
+            logger.error("Missing target in header, returns 400 code.");
             return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler "+HTTPHEADERS_TARGET)));
         }
 
@@ -60,7 +60,7 @@ public class ProxyController {
         Long maxAgeSeconds = httpHeaders.containsKey(HTTPHEADERS_MAX_AGE) ?  Long.parseLong(httpHeaders.get(HTTPHEADERS_MAX_AGE).get(0)) : DEFAULT_EXPIRE_SECONDS;
         httpHeaders.remove(HTTPHEADERS_MAX_AGE);
 
-        logger.info("headers: {}", httpHeaders);
+        logger.info("Trying to call {} with httpMethod {} and headers {}.", target, httpMethod, httpMethod);
 
         try {
             var clientId = Optional.ofNullable(jwtAuthenticationToken)
@@ -76,7 +76,6 @@ public class ProxyController {
                 httpResponse = wrapper.getHttpResponse();
             } else {
                 httpResponse = client.invoke(httpMethod.name(), target, body, httpHeaders);
-                // Lets not cache errors
                 if (httpResponse.is2xxSuccessful()) {
                     proxyCache.put(cacheKey, maxAgeSeconds, httpResponse);
                 }
