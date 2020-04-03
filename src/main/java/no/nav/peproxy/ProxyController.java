@@ -49,7 +49,6 @@ public class ProxyController {
             ServletRequest servletRequest
     ) {
 
-
         if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET)) {
             logger.info("Missing target in header, returns 400 code.");
             return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler "+HTTPHEADERS_TARGET)));
@@ -91,6 +90,7 @@ public class ProxyController {
                     .header(HttpHeaders.CONTENT_TYPE, httpResponse.getContentType())
                     .body(httpResponse.getBody());
         } catch (Exception e) {
+            logger.info("Unable to handle httprequest got Exception with {} to {}. With body: {}", httpMethod, target, e);
             return ResponseEntity.status(500).body(error(e));
         }
     }
@@ -99,5 +99,4 @@ public class ProxyController {
         logger.warn("Feil", e);
         return JsonUtils.toJson(e);
     }
-
 }
