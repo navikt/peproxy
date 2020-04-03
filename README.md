@@ -12,7 +12,7 @@ Outside the http forbidden header name, there are some header fields that will n
 `Authorization`: This field is required if call is called inside fss.<br/>
 `target-authorization`: optional, sett the authentication header towards client.<br/>
 `max-age`: optional, ttl for the httpRequest call<br/>
-`target-url`: required, set the url the proxy will call the client<br/>
+`target-url`: required, set the url for the proxy client<br/>
 
 List of forbidden header name: https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
 
