@@ -1,7 +1,6 @@
 package no.nav.peproxy;
 
 import io.micrometer.core.annotation.Timed;
-import no.nav.peproxy.config.Constants;
 import no.nav.peproxy.support.Client;
 import no.nav.peproxy.support.JsonUtils;
 import no.nav.peproxy.support.ProxyCache;
@@ -21,15 +20,13 @@ import javax.servlet.ServletRequest;
 import java.util.Optional;
 
 import static no.nav.peproxy.config.Constants.*;
-import static no.nav.peproxy.config.Constants.HTTPHEADERS_TARGET;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @RestController
 @RequestMapping("/")
 public class ProxyController {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
-
-    private static final Long DEFAULT_EXPIRE_SECONDS = 60l;
 
     private final Client client;
     private final ProxyCache proxyCache;
@@ -43,32 +40,27 @@ public class ProxyController {
     @Timed(value = "proxy_timer", percentiles = {.5, .9, .99})
     public ResponseEntity post(
             @RequestHeader HttpHeaders httpHeaders,
+            @RequestHeader(value = "target", required = false) String target,
+            @RequestHeader(value = "max-age", defaultValue = DEFAULT_EXPIRE_SECONDS) Long maxAge,
             @RequestBody(required = false) byte[] body,
             HttpMethod httpMethod,
-            JwtAuthenticationToken jwtAuthenticationToken,
+            JwtAuthenticationToken jwtAuthToken,
             ServletRequest servletRequest
     ) {
-
         if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET)) {
             logger.error("Missing target in header, returns 400 code.");
-            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler "+HTTPHEADERS_TARGET)));
+            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler " + HTTPHEADERS_TARGET)));
         }
-
-        String target = httpHeaders.get(HTTPHEADERS_TARGET).get(0);
-        httpHeaders.remove(HTTPHEADERS_TARGET);
-
-        Long maxAgeSeconds = httpHeaders.containsKey(HTTPHEADERS_MAX_AGE) ?  Long.parseLong(httpHeaders.get(HTTPHEADERS_MAX_AGE).get(0)) : DEFAULT_EXPIRE_SECONDS;
-        httpHeaders.remove(HTTPHEADERS_MAX_AGE);
 
         logger.info("Trying to call {} with httpMethod {} and headers {}.", target, httpMethod, httpMethod);
 
         try {
-            var clientId = Optional.ofNullable(jwtAuthenticationToken)
+            var clientId = Optional.ofNullable(jwtAuthToken)
                     .map(jwt -> jwt.getToken().getSubject())
                     .orElse(servletRequest.getRemoteAddr());
 
             var cacheKey = clientId + httpMethod.name() + target;
-            var wrapper = proxyCache.get(cacheKey, maxAgeSeconds);
+            var wrapper = proxyCache.get(cacheKey, maxAge);
             var fromCache = wrapper != null;
             HttpResponse httpResponse;
 
@@ -77,12 +69,12 @@ public class ProxyController {
             } else {
                 httpResponse = client.invoke(httpMethod.name(), target, body, httpHeaders);
                 if (httpResponse.is2xxSuccessful()) {
-                    proxyCache.put(cacheKey, maxAgeSeconds, httpResponse);
+                    proxyCache.put(cacheKey, maxAge, httpResponse);
                 }
             }
             var age = fromCache ? "" + wrapper.getAgeSeconds() : "0";
             logger.info("{} {} {} - status={} age={} maxAge={} fromCache={}", clientId, httpMethod, target,
-                    httpResponse.getStatus(), age, maxAgeSeconds, fromCache);
+                    httpResponse.getStatus(), age, maxAge, fromCache);
             return ResponseEntity
                     .status(httpResponse.getStatus())
                     .header(HttpHeaders.AGE, age)

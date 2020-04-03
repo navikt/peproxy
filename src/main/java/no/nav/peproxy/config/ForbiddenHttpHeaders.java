@@ -1,6 +1,5 @@
 package no.nav.peproxy.config;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,10 +32,9 @@ public enum ForbiddenHttpHeaders {
 
     private String value;
 
-    private ForbiddenHttpHeaders(String value) { this.value = value; }
+    ForbiddenHttpHeaders(String value) { this.value = value; }
 
     public static boolean checkIfHttpHeaderIsViable(String httpHeader) {
-
         List<String> values = Arrays.stream(ForbiddenHttpHeaders.values())
                 .map(h -> h.value.toLowerCase())
                 .collect(Collectors.toList());
