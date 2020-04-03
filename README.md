@@ -9,7 +9,7 @@ The httpRequest that is sent to the `peproxy` will be forwarded towards client w
 Outside the http forbidden header name, there are some header fields that will not be sent to the client. These header fields are used for setting up the call to the proxy.
 
 <strong>Header fields used by application</strong>: <br/>
-`Authorization`: This field is required if call is called outside fss.<br/>
+`Authorization`: This field is required if call is called inside fss.<br/>
 `target-authorization`: optional, sett the authentication header towards client.<br/>
 `max-age`: optional, ttl for the httpRequest call<br/>
 `target-url`: required, set the url the proxy will call the client<br/>
