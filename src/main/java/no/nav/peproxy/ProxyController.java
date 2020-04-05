@@ -72,11 +72,7 @@ public class ProxyController {
                 }
             }
             var age = fromCache ? "" + wrapper.getAgeSeconds() : "0";
-            logger.info(
-                    "{} {} {} - status={} age={} maxAge={} fromCache={} body={}",
-                    clientId, httpMethod, target,httpResponse.getStatus(), age, maxAge, fromCache,
-                    new String(httpResponse.getBody())
-            );
+            logger.info("{} {} {} - status={} age={} maxAge={} fromCache={} body={}", clientId, httpMethod, target, httpResponse.getStatus(), age, maxAge, fromCache, httpResponse.getBodyAsString());
             return ResponseEntity
                     .status(httpResponse.getStatus())
                     .header(HttpHeaders.AGE, age)

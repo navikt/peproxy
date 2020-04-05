@@ -18,6 +18,10 @@ public class HttpResponse {
         return body;
     }
 
+    public String getBodyAsString() {
+        return body == null ? "null" : new String(body);
+    }
+
     public String getContentType() {
         return contentType;
     }
