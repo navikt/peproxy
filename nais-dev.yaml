@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teampeon
 spec:
-  image: docker.pkg.github.com/navikt/peproxy/peproxy:2020.04.04-dfd5ee8
+  image: {{ image }}
   port: 8080
   ingresses:
     - https://peproxy.nais.preprod.local
