@@ -4,7 +4,7 @@ metadata:
   name: peproxy
   namespace: default
   labels:
-    team: teampeon
+    team: pensjonsamhandling
 spec:
   image: {{ image }}
   port: 8080
