@@ -3,6 +3,8 @@ package no.nav.peproxy.support;
 import no.nav.peproxy.config.ForbiddenHttpHeaders;
 import no.nav.peproxy.config.NavProperties;
 import no.nav.peproxy.support.dto.HttpResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -29,6 +31,7 @@ public class Client {
 
     private static final int TIMEOUT_SECONDS = 10;
     private final HttpClient httpClient;
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     public Client(NavProperties navProperties) {
         this.httpClient = HttpClient.newBuilder()
@@ -43,6 +46,9 @@ public class Client {
                 .uri(new URI(target));
         buildUpheadersInHttpbuilder(httpHeaders, httpRequestBuilder);
         var request = httpRequestBuilder.build();
+
+        logger.debug("Body: {}.", body);
+        logger.debug("httpRequestBuilder: {}.", httpRequestBuilder);
 
         var response = httpClient.send(request, BodyHandlers.ofByteArray());
         var contentType = response.headers().firstValue(HttpHeaders.CONTENT_TYPE).orElse(MediaType.APPLICATION_OCTET_STREAM_VALUE);
