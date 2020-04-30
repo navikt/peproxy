@@ -53,6 +53,8 @@ public class ProxyController {
 
         logger.info("Trying to call {} with httpMethod {} and headers {}.", target, httpMethod, httpHeaders);
 
+        logger.error("body from axios endpoint: {}", body);
+
         try {
             var clientId = Optional.ofNullable(jwtAuthToken)
                     .map(jwt -> jwt.getToken().getSubject())
