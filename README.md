@@ -12,7 +12,7 @@ Outside the http forbidden header name, there are some header fields that will n
 1. `Authorization`: This field is required if call is called inside fss.<br/>
 2. `target-authorization`: optional, sett the authentication header towards client.<br/>
 3. `max-age`: optional, ttl for the httpRequest call<br/>
-4. `target-url`: required, set the url for the proxy client<br/>
+4. `target`: required, set the url for the proxy client<br/>
 
 List of forbidden header name: https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
 
@@ -22,12 +22,13 @@ curl https://peproxy.nais.preprod.local
     -H "Authorization: <token>" 
     -H "target-authorization: <clientToken>" 
     -H "max-age: <ttl>" 
-    -H "target-url: <clientUrl>" 
+    -H "target: <clientUrl>" 
     -H "Content-Type: <Content-Type>"
     -d "<body>"
 ```
 ## Applications that uses peproxy
 1. `tjenestepensjon-simulering`
+2. `POPP - opptjenings registeret`
 
 ## Metrics
 [Grafana dashboard](https://grafana.adeo.no/d/6IzDnOVWk/peproxy)

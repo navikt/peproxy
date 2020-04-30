@@ -6,7 +6,7 @@ metadata:
   labels:
     team: pensjonsamhandling
 spec:
-  image: docker.pkg.github.com/navikt/peproxy/peproxy:2020.04.05-8204164
+  image: {{ image }}
   port: 8080
   ingresses:
     - https://peproxy.nais.preprod.local

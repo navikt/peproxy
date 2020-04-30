@@ -39,16 +39,16 @@ public class ProxyController {
     @Timed(value = "proxy_timer", percentiles = {.5, .9, .99})
     public ResponseEntity post(
             @RequestHeader HttpHeaders httpHeaders,
-            @RequestHeader(value = HTTPHEADERS_TARGET_URL, required = false) String target,
+            @RequestHeader(value = HTTPHEADERS_TARGET, required = false) String target,
             @RequestHeader(value = HTTPHEADERS_MAX_AGE, defaultValue = DEFAULT_EXPIRE_SECONDS) Long maxAge,
             @RequestBody(required = false) byte[] body,
             HttpMethod httpMethod,
             JwtAuthenticationToken jwtAuthToken,
             ServletRequest servletRequest
     ) {
-        if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET_URL)) {
+        if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET)) {
             logger.error("Missing target in header, returns 400 code.");
-            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler " + HTTPHEADERS_TARGET_URL)));
+            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler " + HTTPHEADERS_TARGET)));
         }
 
         logger.info("Trying to call {} with httpMethod {} and headers {}.", target, httpMethod, httpHeaders);

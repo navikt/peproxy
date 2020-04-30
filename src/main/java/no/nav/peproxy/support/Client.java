@@ -68,7 +68,7 @@ public class Client {
 
     private void removeHeadersNotForClient(HttpHeaders httpHeaders) {
         httpHeaders.remove(HTTPHEADERS_MAX_AGE);
-        httpHeaders.remove(HTTPHEADERS_TARGET_URL);
+        httpHeaders.remove(HTTPHEADERS_TARGET);
 
         if (httpHeaders.containsKey(HTTPHEADERS_TARGET_AUTHORIZATION)) {
             httpHeaders.add(AUTHORIZATION, httpHeaders.get(HTTPHEADERS_TARGET_AUTHORIZATION).get(0));
