@@ -51,7 +51,7 @@ public class ProxyController {
             return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler " + HTTPHEADERS_TARGET_URL)));
         }
 
-        logger.info("Trying to call {} with httpMethod {} and headers {}.", target, httpMethod, httpMethod);
+        logger.info("Trying to call {} with httpMethod {} and headers {}.", target, httpMethod, httpHeaders);
 
         try {
             var clientId = Optional.ofNullable(jwtAuthToken)

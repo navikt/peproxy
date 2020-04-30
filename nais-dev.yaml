@@ -4,7 +4,7 @@ metadata:
   name: peproxy
   namespace: default
   labels:
-    team: teampeon
+    team: pensjonsamhandling
 spec:
   image: docker.pkg.github.com/navikt/peproxy/peproxy:2020.04.05-8204164
   port: 8080
