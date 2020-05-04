@@ -53,8 +53,6 @@ public class ProxyController {
 
         logger.info("Trying to call {} with httpMethod {} and headers {}.", target, httpMethod, httpHeaders);
 
-        logger.error("body from axios endpoint: {}", body);
-
         try {
             var clientId = Optional.ofNullable(jwtAuthToken)
                     .map(jwt -> jwt.getToken().getSubject())
@@ -81,13 +79,13 @@ public class ProxyController {
                     .header(HttpHeaders.CONTENT_TYPE, httpResponse.getContentType())
                     .body(httpResponse.getBody());
         } catch (Exception e) {
-            logger.info("Unable to handle httprequest got Exception with {} to {}. With body: {}", httpMethod, target, e);
+            logger.info("Unable to handle httprequest got Exception with {} to {}", httpMethod, target);
             return ResponseEntity.status(500).body(error(e));
         }
     }
 
     private String error(Exception e) {
-        logger.warn("Feil", e);
+        logger.error("Feil", e.getCause());
         return JsonUtils.toJson(e);
     }
 }

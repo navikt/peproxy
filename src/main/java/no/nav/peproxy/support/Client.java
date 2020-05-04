@@ -46,10 +46,6 @@ public class Client {
                 .uri(new URI(target));
         buildUpheadersInHttpbuilder(httpHeaders, httpRequestBuilder);
         var request = httpRequestBuilder.build();
-
-        logger.error("Body: {}.", body);
-        logger.error("httpRequestBuilder: {}.", httpRequestBuilder);
-
         var response = httpClient.send(request, BodyHandlers.ofByteArray());
         var contentType = response.headers().firstValue(HttpHeaders.CONTENT_TYPE).orElse(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 

@@ -24,6 +24,12 @@ management:
     git:
       mode: simple
 
+logging:
+  level:
+    no:
+      nav:
+        peproxy: INFO
+
 spring:
   main:
     banner-mode: 'OFF'
