@@ -46,7 +46,6 @@ jobs:
           RESOURCE: nais-dev.yaml
           IMAGE: ${{ env.IMAGE }}
           TEAM: pensjonsamhandling
-
       # Deploy to prod
       - name: Deploy to prod-fss
         uses: nais/deploy/actions/deploy@v1

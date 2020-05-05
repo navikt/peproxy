@@ -1,11 +1,6 @@
 package no.nav.peproxy;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
-import java.util.Optional;
-
 import io.micrometer.core.annotation.Timed;
-import javax.servlet.ServletRequest;
 import no.nav.peproxy.support.Client;
 import no.nav.peproxy.support.JsonUtils;
 import no.nav.peproxy.support.ProxyCache;
@@ -21,13 +16,16 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.ServletRequest;
+import java.util.Optional;
+
+import static no.nav.peproxy.config.Constants.*;
+
 @RestController
 @RequestMapping("/")
 public class ProxyController {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
-
-    private static final String DEFAULT_EXPIRE_SECONDS = "60";
 
     private final Client client;
     private final ProxyCache proxyCache;
@@ -40,49 +38,54 @@ public class ProxyController {
     @RequestMapping
     @Timed(value = "proxy_timer", percentiles = {.5, .9, .99})
     public ResponseEntity post(
-            @RequestHeader(value = "target", required = false) String target,
-            @RequestHeader(value = "max-age", defaultValue = DEFAULT_EXPIRE_SECONDS) Long maxAgeSeconds,
+            @RequestHeader HttpHeaders httpHeaders,
+            @RequestHeader(value = HTTPHEADERS_TARGET, required = false) String target,
+            @RequestHeader(value = HTTPHEADERS_MAX_AGE, defaultValue = DEFAULT_EXPIRE_SECONDS) Long maxAge,
             @RequestBody(required = false) byte[] body,
             HttpMethod httpMethod,
-            JwtAuthenticationToken jwtAuthenticationToken,
+            JwtAuthenticationToken jwtAuthToken,
             ServletRequest servletRequest
     ) {
-        if (isBlank(target)) {
-            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler target")));
+        if (httpHeaders == null || httpHeaders.isEmpty() || !httpHeaders.containsKey(HTTPHEADERS_TARGET)) {
+            logger.error("Missing target in header, returns 400 code.");
+            return ResponseEntity.status(400).body(error(new IllegalArgumentException("Mangler " + HTTPHEADERS_TARGET)));
         }
+
+        logger.info("Trying to call {} with httpMethod {} and headers {}.", target, httpMethod, httpHeaders);
+
         try {
-            var clientId = Optional.ofNullable(jwtAuthenticationToken)
+            var clientId = Optional.ofNullable(jwtAuthToken)
                     .map(jwt -> jwt.getToken().getSubject())
                     .orElse(servletRequest.getRemoteAddr());
+
             var cacheKey = clientId + httpMethod.name() + target;
-            var wrapper = proxyCache.get(cacheKey, maxAgeSeconds);
+            var wrapper = proxyCache.get(cacheKey, maxAge);
             var fromCache = wrapper != null;
             HttpResponse httpResponse;
+
             if (fromCache) {
                 httpResponse = wrapper.getHttpResponse();
             } else {
-                httpResponse = client.invoke(httpMethod.name(), target, body);
-                // Lets not cache errors
+                httpResponse = client.invoke(httpMethod.name(), target, body, httpHeaders);
                 if (httpResponse.is2xxSuccessful()) {
-                    proxyCache.put(cacheKey, maxAgeSeconds, httpResponse);
+                    proxyCache.put(cacheKey, maxAge, httpResponse);
                 }
             }
             var age = fromCache ? "" + wrapper.getAgeSeconds() : "0";
-            logger.info("{} {} {} - status={} age={} maxAge={} fromCache={}", clientId, httpMethod, target,
-                    httpResponse.getStatus(), age, maxAgeSeconds, fromCache);
+            logger.info("{} {} {} - status={} age={} maxAge={} fromCache={}", clientId, httpMethod, target, httpResponse.getStatus(), age, maxAge, fromCache);
             return ResponseEntity
                     .status(httpResponse.getStatus())
                     .header(HttpHeaders.AGE, age)
                     .header(HttpHeaders.CONTENT_TYPE, httpResponse.getContentType())
-                    .body(httpResponse.getData());
+                    .body(httpResponse.getBody());
         } catch (Exception e) {
+            logger.info("Unable to handle httprequest got Exception with {} to {}", httpMethod, target);
             return ResponseEntity.status(500).body(error(e));
         }
     }
 
     private String error(Exception e) {
-        logger.warn("Feil", e);
+        logger.error("Feil", e.getCause());
         return JsonUtils.toJson(e);
     }
-
 }

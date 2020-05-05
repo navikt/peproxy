@@ -1,10 +1,10 @@
 info:
   app:
-    version: @project.version@
-    name: @project.name@
-    encoding: @project.build.sourceEncoding@
+    version: 1.0
+    name: peproxy
+    encoding: UTF-8
     java:
-      version: @java.version@
+      version: 11.0.4
 
 management:
   endpoints:
@@ -23,12 +23,6 @@ management:
   info:
     git:
       mode: simple
-
-logging:
-  level:
-    no:
-      nav:
-        peproxy: INFO
 
 spring:
   main:
